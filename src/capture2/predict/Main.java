@@ -36,5 +36,8 @@ public class Main {
         System.out.println(lambdaGreenApples);
         List<Apple> lambdaHeavyApples = filterApples(apples, Apple::isHeavyApple);
         System.out.println(lambdaHeavyApples);
+
+        Predicate<Apple> greenApplePredict = (Apple apple) -> "green".equals(apple.getColor());
+        Predicate<Apple> predict = greenApplePredict.and(Apple::isHeavyApple);
     }
 }
