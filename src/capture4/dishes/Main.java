@@ -2,7 +2,6 @@ package capture4.dishes;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -35,9 +34,9 @@ public class Main {
                 .collect(toList());
 
 
-        Optional<Dish> found = menu.stream().filter().findAny();
-        if (found.isPresent()) {
-
-        }
+//        Optional<Dish> found = menu.stream().filter().findAny();
+//        if (found.isPresent()) {
+//
+//        }
     }
 }
