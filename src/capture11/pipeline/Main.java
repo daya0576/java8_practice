@@ -2,7 +2,9 @@ package capture11.pipeline;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.stream.Collectors.toList;
 
 public class Main {
     static List<Shop> shopList = Arrays.asList(
@@ -11,14 +13,31 @@ public class Main {
             new Shop("shop3")
     );
 
-    private static void syncQuery() {
+    private static void findPrices() {
         List<String> productList = shopList.stream()
                 .map(shop -> shop.getPrice("apple"))
                 .map(Quote::parse)
                 .map(Discount::applyDiscount)
-                .collect(Collectors.toList());
+                .collect(toList());
         System.out.println(productList);
     }
+
+    private static void findPricesAsync() {
+        List<CompletableFuture<String>> productFutures = shopList.stream()
+                .map(shop -> CompletableFuture.supplyAsync(
+                        () -> shop.getPrice("apple")))
+                .map(future -> future.thenApply(Quote::parse))
+                .map(future -> future.thenCompose(quote ->
+                        CompletableFuture.supplyAsync(
+                                () -> Discount.applyDiscount(quote))))
+                .collect(toList());
+
+        List<String> productList = productFutures.stream()
+                .map(CompletableFuture::join)
+                .collect(toList());
+        System.out.println(productList);
+    }
+
 
     public static void measure(Runnable r1) {
         long start = System.currentTimeMillis();
@@ -28,9 +47,11 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // 3 x (1s+1s) = 6s
-        measure(Main::syncQuery);
+        // 3 x (100ms+100ms) ≈ 600ms
+        measure(Main::findPrices);
 
-
+        // 100ms+100ms ≈ 200ms
+        // 使用多线程的方式将多个查询任务并行执行
+        measure(Main::findPricesAsync);
     }
 }
